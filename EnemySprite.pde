@@ -11,7 +11,6 @@ class EnemySprite {
   int bossSpawnTime = 30 * 60; // 30 seconds in frames
   int spriteWidth, spriteHeight;
   int totalEnemies = 5;
-  PVector velocity;
   private Enemy activeEnemy = null;
   public void setActiveEnemy(Enemy enemy) {
     this.activeEnemy = enemy;
@@ -32,7 +31,6 @@ class EnemySprite {
     this.numFrames = numFrames;
     this.spriteWidth = spriteWidth;
     this.spriteHeight = spriteHeight;
-    this.velocity = new PVector(0, 2);
     enemies = new ArrayList<>();
     loadWords(csvFilePath);  // Load words from CSV
   }
@@ -45,39 +43,29 @@ class EnemySprite {
     }
   }
 
-void update() {
-  if (!gamePaused && frameCount % 60 == 0 && enemies.size() < totalEnemies) {
-    PImage spriteSheet = spriteSheets[new Random().nextInt(spriteSheets.length)];
-    
-    // Generate random X and Y positions within the canvas boundaries
-    float randomX = random(spriteWidth, width - spriteWidth); // Adjusted to prevent enemies from going out of the left and right edges
-    float randomY = -spriteHeight; // Start enemies off-screen at the top
+  void update() {
+    if (!gamePaused && frameCount % 60 == 0 && enemies.size() < totalEnemies) {
+      PImage spriteSheet = spriteSheets[new Random().nextInt(spriteSheets.length)];
+      float randomX = random(width-50);
+      int wordIndex = new Random().nextInt(wordList.length); // Randomly pick a word for the enemy
+      Enemy newEnemy = new Enemy(randomX, -spriteHeight, spriteSheet, numFrames, spriteWidth, spriteHeight, wordList[wordIndex]);
+      enemies.add(newEnemy);
+    }
 
-    int wordIndex = new Random().nextInt(wordList.length); // Randomly pick a word for the enemy
-    Enemy newEnemy = new Enemy(randomX, randomY, spriteSheet, numFrames, spriteWidth, spriteHeight, wordList[wordIndex], velocity);
-    enemies.add(newEnemy);
-  }
-
-  if (!gamePaused) {
-    for (int i = enemies.size() - 1; i >= 0; i--) {
-      Enemy enemy = enemies.get(i);
-      enemy.update();
-      if (enemy.position.y > height || enemy.isWordComplete()) {
-        enemies.remove(i);
+    if (!gamePaused) {
+      for (int i = enemies.size() - 1; i >= 0; i--) {
+        Enemy enemy = enemies.get(i);
+        enemy.update();
+        if (enemy.position.y > height || enemy.isWordComplete()) {
+          enemies.remove(i);
+        }
       }
     }
   }
-}
-
-
 
   void display() {
     for (Enemy enemy : enemies) {
       enemy.display();
     }
-  }
-  
-  void changeVelocity(PVector velocity) {
-    this.velocity = velocity;
   }
 }
