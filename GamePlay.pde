@@ -5,12 +5,17 @@ void drawGameplayScreen() {
   player.display();
   enemySprite.display();
   enemySprite.update();
-  playerScore.display(width/2, 50);
   drawPauseButton();
+
+  // Draw the score text
+  fill(255); 
+  textSize(25); 
+  textAlign(CENTER); 
+  text("Score: " + score, width/2, 40); 
+
 
   if (gamePaused) {
     drawPauseScreen(); // Draw pause screen if game is paused
-    speedTimer.pause();
   }
 }
 
