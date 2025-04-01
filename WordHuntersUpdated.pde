@@ -6,19 +6,12 @@ PImage bulletImage;
 EnemySprite enemySprite;
 PImage muteButtonImg, soundButtonImg, xButtonImg, instructionsButtonImg, playButtonImg, pauseButtonImg, resumeButtonImg, restartButtonImg, mainMenuButtonImg, cancelButtonImg;
 PFont font_flappy;
-boolean showSettingsMenu = false, gameStarted = false, gamePaused = false, gameOver = false, instructionPressed = false;
-int imageY, score = 0, highScore = 0;
+PFont font_2;
+boolean showSettingsMenu = false, gameStarted = false, gamePaused = false, gameOver = false;
+int imageY, score = 0;
 PImage[] enemySpriteSheets;
 boolean soundOn = true;
-HighScoreList highScoreList;
-HighScore playerScore;
-boolean addScore = false;
-String playerName = "";
-boolean nameEntered = false;
-char[] input = new char[200];
-int nameCount = 0;
 boolean transitioningToGameplay = false;
-Timer speedTimer;
 
 int numStars = 100;
 float[] starX = new float[numStars];
@@ -32,14 +25,10 @@ SoundFile backgroundMusic;
 
 void setup() {
   size(800, 600);
-  clickSound = new SoundFile(this, "click.mp3"); // Load the sound file
-  typeSound = new SoundFile(this, "shoot.mp3"); // Load the sound file
+  clickSound = new SoundFile(this, "click.mp3");
+  typeSound = new SoundFile(this, "shoot.mp3");
   backgroundMusic = new SoundFile(this, "background.mp3");
   backgroundMusic.loop();
-  
-  // Load high scores and initialize new player score
-  highScoreList = new HighScoreList("highscores.txt");
-  playerScore = new HighScore(playerName, score);
 
   // Load enemy sprite sheets
   enemySpriteSheets = new PImage[] { loadImage("enemysprite.png"), loadImage("enemysprite2.png") };
@@ -52,12 +41,8 @@ void setup() {
   player = new PlayerSprite(width/2, 550, spriteSheet, bulletImage);
   enemySprite = new EnemySprite(enemySpriteSheets, 5, 80, 80, "words.csv");
 
-  // Create a timer for the enemy sprites speed
-  speedTimer = new Timer(5000, enemySprite.velocity);
-
   // Load button images
   instructionsButtonImg = loadImage("instructions.png");
-  xButtonImg = loadImage("x.png");
   playButtonImg = loadImage("play.png");
   pauseButtonImg = loadImage("pause.png");
   resumeButtonImg = loadImage("resume.png");
@@ -69,7 +54,6 @@ void setup() {
 
   // Resize button images
   instructionsButtonImg.resize(53, 60);
-  xButtonImg.resize(40, 0);
   playButtonImg.resize(160, 0);
   pauseButtonImg.resize(0, 80);
   resumeButtonImg.resize(0, 80);
@@ -85,10 +69,9 @@ void setup() {
   cancelButtonImg.resize(maxButtonWidth, 0);
 
   // Load font
-  font_flappy = createFont("flappy-font.ttf", 48);
+  font_flappy = createFont("flappy-font.ttf", 30);
 
   // Initialize player score
-  playerScore = new HighScore("Player", 0);
 
   // Initialize stars
   for (int i = 0; i < numStars; i++) {
@@ -115,20 +98,11 @@ void draw() {
           break;
         }
       }
-      speedTimer.update();
-      enemySprite.changeVelocity(speedTimer.enemyVelocity);
     }
   } else if (gameOver) {
     drawGameOverScreen();
-    if (!addScore) {
-      highScoreList.addHighScore(playerName, score);
-      addScore = true;
-    }
   } else {
     drawMenuScreen();
-    textSize(30);
-    text("Enter your name:", width/2, 200);
-    text(String.valueOf(input).trim(), width/2, 250);
   }
   moveStars(); // Move stars
   if (!soundOn) {
@@ -139,34 +113,50 @@ void draw() {
   }
 }
 
-
 void mouseClicked() {
   // Toggle sound state when sound button is clicked
   if (mouseX >= 70 && mouseX <= 110 && mouseY >= 19 && mouseY <= 59) {
-    soundOn = !soundOn; // Toggle sound state
+    clickSound.play(); // Play click sound
+    soundOn = !soundOn;
+    // Toggle sound state
     if (!soundOn) {
       // Stop all sounds if sound is turned off
       backgroundMusic.stop(); // Stop background music
       typeSound.stop(); // Stop typing sound
-      clickSound.play(); // Play click sound
     } else {
       // Play background music if sound is turned on
       backgroundMusic.loop();
-      clickSound.play(); // Play click sound
     }
   }
 
-  // Open the instructions page
-  /*
-    if (mouseX >= 17 && mouseX <= 57 && mouseY >= 19 && mouseY <= 59) {
-      instructions();
-    }*/
+  // Restart the game when main menu button is clicked during game pause
+  if (gamePaused && mouseX >= width/2 - mainMenuButtonImg.width / 2 - 2 && mouseX <= width/2 + mainMenuButtonImg.width / 2 + 2 && mouseY >= height/2 - mainMenuButtonImg.height / 2 - 52 && mouseY <= height/2 + mainMenuButtonImg.height / 2 + 48) {
+    mainMenu();
+    clickSound.play();
+  }
 
-  // Restart the game when restart button is clicked during game pause
-  if (gamePaused && mouseX >= width/2 - mainMenuButtonImg.width / 2 - 2 && mouseX <= width/2 + mainMenuButtonImg.width / 2 + 2 && mouseY >= height/2 - restartButtonImg.height / 2 - 52 && mouseY <= height/2 + restartButtonImg.height / 2 + 48) {
-    mainMenu(); // Restart the game
+  // Check if the instructions button is clicked
+  if (showInstructions && closeButtonHovered) {
+    showInstructions = false; // Close the instructions window
     clickSound.play(); // Play click sound
   }
+
+  // Open the instructions window if the instructions button is clicked
+  if (!showInstructions && mouseX >= 17 && mouseX <= 57 && mouseY >= 19 && mouseY <= 59) {
+    showInstructions = true; // Show the instructions window
+    clickSound.play(); // Play click sound
+  }
+}
+
+boolean isInstructionsButtonClicked() {
+  float buttonWidth = 40;
+  float buttonHeight = 40;
+  float buttonX = 17;
+  float buttonY = 19;
+
+  // Check if the mouse is clicked within the instructions button area
+  return mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
+    mouseY >= buttonY && mouseY <= buttonY + buttonHeight;
 }
 
 
@@ -177,7 +167,6 @@ void mainMenu() {
   gamePaused = false;
   gameOver = false;
   score = 0;
-  highScore = 0;
 
   player = new PlayerSprite(width/2, 550, spriteSheet, bulletImage);
   enemySprite = new EnemySprite(enemySpriteSheets, 5, 80, 80, "words.csv");
@@ -198,23 +187,9 @@ void resetGame() {
 }
 
 void keyPressed() {
-  if (!gameStarted && !nameEntered) {
-    if (key != ENTER) {
-      input[nameCount] = key;
-      nameCount++;
-      playerName += key;
-    }
-    else {
-      nameEntered = true;
-      print(playerName);
-    }
-  }
-
   boolean letterTyped = false;
-  if (soundOn) {
-    typeSound.amp(0.5);
-    typeSound.play();
-  }
+  typeSound.amp(0.5);
+  typeSound.play();
 
   // Check if there is an active enemy
   if (enemySprite.getActiveEnemy() != null) {
@@ -226,8 +201,6 @@ void keyPressed() {
       if (activeEnemy.isWordComplete()) {
         enemySprite.getEnemies().remove(enemySprite.getEnemies().indexOf(activeEnemy)); // Remove the enemy
         enemySprite.clearActiveEnemy(); // Clear active enemy since the word is completed
-        score += 10;
-        playerScore.addScore(score);
       }
     }
   } else {
@@ -241,8 +214,6 @@ void keyPressed() {
         if (enemy.isWordComplete()) {
           enemySprite.getEnemies().remove(i); // Remove the enemy
           enemySprite.clearActiveEnemy(); // Reset active enemy since the word is completed
-          score += 10;
-          playerScore.addScore(score);
         }
         break; // Stop after the first match
       }
