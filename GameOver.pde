@@ -25,18 +25,15 @@ void drawGameOverScreen() {
   fill(255, 0, 0, transitionOpacity);
   textSize(72);
   textAlign(CENTER, CENTER);
-  // Draw the text without a stroke
-  noStroke(); // Disable stroke
-  textFont(font_flappy); // Use the custom font
-  text("Game Over", width/2, height/3 - 50);
+  noStroke();
+  textFont(font_flappy);
+  textSize(50);
+  text("Game Over", width/2, height/3 - 30);
 
-  // Draw static score and high score text with transition opacity
-  fill(255, transitionOpacity); // Set text color to white with transition opacity
-  textSize(36); // Set text size
-  textAlign(CENTER, CENTER); // Set text alignment
-  text("Score: " + score, width/2, height/2 - 50); // Display score
-  highScoreList.displayHighScores(120, 150, 40);
-  highScoreList.displayHighScores(width - 120, 150, 40);
+  fill(255, transitionOpacity);
+  textSize(30);
+  textAlign(CENTER, CENTER);
+  text("Score: " + score, width/2, height/2 - 30); // Display score
 
   // Check if mouse is hovering over each button
   boolean isHoveringButton1 = mouseX >= buttonX - 90 && mouseX <= buttonX - 90 + buttonWidth &&
@@ -44,13 +41,10 @@ void drawGameOverScreen() {
   boolean isHoveringButton2 = mouseX >= buttonX + 98 && mouseX <= buttonX + 100 + buttonWidth &&
     mouseY >= buttonY + 90 + buttonHeight + buttonSpacing && mouseY <= buttonY + 90 + 2 * buttonHeight + buttonSpacing;
 
-
-  // Draw the three button rectangles with transparent fill
   fill(0); // Semi-transparent white fill
-  noStroke(); // Remove border stroke
-  rect(buttonX - 100, buttonY +180, buttonWidth, buttonHeight, 10); // Draw first button rectangle
-  rect(buttonX + 80, buttonY +85 + buttonHeight + buttonSpacing + 15, buttonWidth, buttonHeight, 10); // Draw second button rectangle
-
+  noStroke(); 
+  rect(buttonX - 100, buttonY +180, buttonWidth, buttonHeight, 10);
+  rect(buttonX + 80, buttonY +85 + buttonHeight + buttonSpacing + 15, buttonWidth, buttonHeight, 10);
 
   float imageX = 400;
 
