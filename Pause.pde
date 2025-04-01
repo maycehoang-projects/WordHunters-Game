@@ -71,8 +71,6 @@ void drawPauseScreen() {
   // Check for click on the restart button
   if (isHoveringButton1 && mousePressed && gamePaused) {
     // Reset the game
-    speedTimer.restart();
-    speedTimer.pause();
     resetGame();
     gamePaused = false;
     clickSound.play(); // Play the click sound
@@ -83,6 +81,5 @@ void drawPauseScreen() {
     // Unpause the game
     gamePaused = false;
     clickSound.play();
-    speedTimer.begin();
   }
 }
